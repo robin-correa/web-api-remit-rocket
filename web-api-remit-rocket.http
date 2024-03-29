@@ -1,0 +1,6 @@
+@web_api_remit_rocket_HostAddress = http://localhost:5007
+
+GET {{web_api_remit_rocket_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
