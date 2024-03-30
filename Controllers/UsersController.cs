@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using web_api_remit_rocket.Data;
 using web_api_remit_rocket.Dtos.Users;
+using web_api_remit_rocket.Helpers;
 using web_api_remit_rocket.Models;
 
 namespace web_api_remit_rocket.Controllers
@@ -19,10 +20,34 @@ namespace web_api_remit_rocket.Controllers
 
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GetUserDto>>> GetUsers()
+        public async Task<ActionResult<Paginate<GetUserDto>>> GetUsers(int pageNumber = 1, int pageSize = 10)
         {
-            var users = await _context.Users.ToListAsync();
-            return users.Select(toArrayResource).ToList();
+            var query = _context.Users.AsQueryable();
+
+            // Calculate the number of items to skip
+            int skip = (pageNumber - 1) * pageSize;
+
+            // Get total number of items
+            int totalItems = await query.CountAsync();
+
+            // Apply pagination
+            var users = await query
+                .Skip(skip)
+                .Take(pageSize)
+                .ToListAsync();
+
+            // Generate next page link
+            string? nextPageLink = (pageNumber * pageSize) < totalItems ? Url.Action("GetUsers", new { pageNumber = pageNumber + 1, pageSize }) : string.Empty;
+
+            // Create pagination response
+            return new Paginate<GetUserDto>
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                Data = users.Select(toArrayResource).ToList(),
+                NextPageLink = nextPageLink
+            };
         }
 
         // GET: api/Users/5
