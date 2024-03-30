@@ -12,8 +12,8 @@ using web_api_remit_rocket.Data;
 namespace web_api_remit_rocket.Migrations
 {
     [DbContext(typeof(RemitRocketDbContext))]
-    [Migration("20240329160622_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20240330134158_CreateUsersTable")]
+    partial class CreateUsersTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace web_api_remit_rocket.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("web_api_remit_rocket.Data.User", b =>
+            modelBuilder.Entity("web_api_remit_rocket.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()

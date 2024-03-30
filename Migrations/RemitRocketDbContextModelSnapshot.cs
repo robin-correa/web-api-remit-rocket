@@ -22,7 +22,7 @@ namespace web_api_remit_rocket.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("web_api_remit_rocket.Data.User", b =>
+            modelBuilder.Entity("web_api_remit_rocket.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()

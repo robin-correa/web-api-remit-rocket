@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace web_api_remit_rocket.Data
+namespace web_api_remit_rocket.Models
 {
     public class User
     {
@@ -9,22 +9,22 @@ namespace web_api_remit_rocket.Data
 
         [Required]
         [MaxLength(255)]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [Required]
-        public string Password { get; set; }
-
-        [Required]
-        [MaxLength(255)]
-        public string LastName { get; set; }
+        public string Password { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(255)]
-        public string FirstName { get; set; }
+        public string LastName { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(255)]
-        public string MiddleName { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(255)]
+        public string MiddleName { get; set; } = string.Empty;
 
         [Required]
         public int Gender { get; set; }
