@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using web_api_remit_rocket.Data;
+using web_api_remit_rocket.Dtos.Users;
 using web_api_remit_rocket.Models;
 
 namespace web_api_remit_rocket.Controllers
@@ -18,14 +19,15 @@ namespace web_api_remit_rocket.Controllers
 
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<GetUserDto>>> GetUsers()
         {
-            return await _context.Users.ToListAsync();
+            var users = await _context.Users.ToListAsync();
+            return users.Select(toArrayResource).ToList();
         }
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        public async Task<ActionResult<GetUserDto>> GetUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
 
@@ -34,7 +36,7 @@ namespace web_api_remit_rocket.Controllers
                 return NotFound();
             }
 
-            return user;
+            return this.toArrayResource(user);
         }
 
         // PUT: api/Users/5
@@ -71,12 +73,12 @@ namespace web_api_remit_rocket.Controllers
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
+        public async Task<ActionResult<GetUserDto>> PostUser(User user)
         {
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetUser", new { id = user.Id }, user);
+            return CreatedAtAction("GetUser", new { id = user.Id }, this.toArrayResource(user));
         }
 
         // DELETE: api/Users/5
@@ -98,6 +100,22 @@ namespace web_api_remit_rocket.Controllers
         private bool UserExists(int id)
         {
             return _context.Users.Any(e => e.Id == id);
+        }
+
+        private GetUserDto toArrayResource(User user) {
+            return new GetUserDto
+            {
+                Id = user.Id,
+                Email = user.Email,
+                LastName = user.LastName,
+                FirstName = user.FirstName,
+                MiddleName = user.MiddleName,
+                Gender = user.Gender,
+                BirthDate = user.BirthDate.ToString("yyyy-MM-dd"),
+                Status = user.Status,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt,
+            };
         }
     }
 }
