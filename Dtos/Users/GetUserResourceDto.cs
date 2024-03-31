@@ -2,7 +2,7 @@
 
 namespace web_api_remit_rocket.Dtos.Users
 {
-    public class GetUserDto
+    public class GetUserResourceDto
     {
         public int Id { get; set; }
         public string Email { get; set; } = string.Empty;

@@ -20,39 +20,54 @@ namespace web_api_remit_rocket.Controllers
 
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<Paginate<GetUserDto>>> GetUsers(int pageNumber = 1, int pageSize = 10)
+        public async Task<ActionResult<Paginate<GetUserResourceDto>>> GetUsers(int currentPage = 1, int perPage = 10)
         {
             var query = _context.Users.AsQueryable();
 
             // Calculate the number of items to skip
-            int skip = (pageNumber - 1) * pageSize;
+            int skip = (currentPage - 1) * perPage;
 
             // Get total number of items
             int totalItems = await query.CountAsync();
 
+            // Calculate total number of pages
+            int totalPages = (int)Math.Ceiling((double)totalItems / perPage);
+
             // Apply pagination
             var users = await query
                 .Skip(skip)
-                .Take(pageSize)
+                .Take(perPage)
                 .ToListAsync();
 
-            // Generate next page link
-            string? nextPageLink = (pageNumber * pageSize) < totalItems ? Url.Action("GetUsers", new { pageNumber = pageNumber + 1, pageSize }) : string.Empty;
+            // Generate next page URL
+            string? nextPageUrl = currentPage < totalPages ? Url.Action("GetUsers", new { currentPage = currentPage + 1, perPage }) : string.Empty;
+
+            // Generate previous page URL
+            string? prevPageUrl = currentPage > 1 ? Url.Action("GetUsers", new { currentPage = currentPage - 1, perPage }) : string.Empty;
 
             // Create pagination response
-            return new Paginate<GetUserDto>
+            var paginated = new Paginate<GetUserResourceDto>
             {
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                TotalItems = totalItems,
-                Data = users.Select(toArrayResource).ToList(),
-                NextPageLink = nextPageLink
+                currentPage = currentPage,
+                perPage = perPage,
+                total = totalItems,
+                lastPage = totalPages,
+                data = users.Select(toArrayResource).ToList(),
+                nextPageUrl = nextPageUrl,
+                previousPageUrl = prevPageUrl,
+                firstPageUrl = Url.Action("GetUsers", new { currentPage = 1, perPage }) ?? string.Empty,
+                lastPageUrl = Url.Action("GetUsers", new { currentPage = totalPages, perPage }) ?? string.Empty,
+                path = Url.Action("GetUsers", new { currentPage, perPage }) ?? string.Empty,
+                from = skip + 1,
+                to = skip + users.Count
             };
+
+            return paginated;
         }
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<GetUserDto>> GetUser(int id)
+        public async Task<ActionResult<GetUserResourceDto>> GetUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
 
@@ -98,7 +113,7 @@ namespace web_api_remit_rocket.Controllers
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<GetUserDto>> PostUser(User user)
+        public async Task<ActionResult<GetUserResourceDto>> PostUser(User user)
         {
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -127,8 +142,8 @@ namespace web_api_remit_rocket.Controllers
             return _context.Users.Any(e => e.Id == id);
         }
 
-        private GetUserDto toArrayResource(User user) {
-            return new GetUserDto
+        private GetUserResourceDto toArrayResource(User user) {
+            return new GetUserResourceDto
             {
                 Id = user.Id,
                 Email = user.Email,
