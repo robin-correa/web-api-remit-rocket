@@ -25,46 +25,7 @@ namespace web_api_remit_rocket.Controllers
         [HttpGet]
         public async Task<ActionResult<Paginate<GetUserResourceDto>>> GetUsers(int currentPage = DefaultPage, int perPage = DefaultPerPage)
         {
-            var query = _context.Users.AsQueryable();
-
-            // Calculate the number of items to skip
-            int skip = (currentPage - 1) * perPage;
-
-            // Get total number of items
-            int totalItems = await query.CountAsync();
-
-            // Calculate total number of pages
-            int totalPages = (int)Math.Ceiling((double)totalItems / perPage);
-
-            // Apply pagination
-            var users = await query
-                .Skip(skip)
-                .Take(perPage)
-                .ToListAsync();
-
-            // Generate next page URL
-            string? nextPageUrl = currentPage < totalPages ? Url.Action("GetUsers", new { currentPage = currentPage + 1, perPage }) : string.Empty;
-
-            // Generate previous page URL
-            string? prevPageUrl = currentPage > 1 ? Url.Action("GetUsers", new { currentPage = currentPage - 1, perPage }) : string.Empty;
-
-            // Create pagination response
-            var paginated = new Paginate<GetUserResourceDto>
-            {
-                currentPage = currentPage,
-                perPage = perPage,
-                total = totalItems,
-                lastPage = totalPages,
-                data = users.Select(ToArrayResource).ToList(),
-                nextPageUrl = nextPageUrl,
-                previousPageUrl = prevPageUrl,
-                firstPageUrl = Url.Action("GetUsers", new { currentPage = 1, perPage }) ?? string.Empty,
-                lastPageUrl = Url.Action("GetUsers", new { currentPage = totalPages, perPage }) ?? string.Empty,
-                path = Url.Action("GetUsers", new { currentPage, perPage }) ?? string.Empty,
-                from = skip + 1,
-                to = skip + users.Count
-            };
-
+            var paginated = await GetPaginatedData(currentPage, perPage);
             return paginated;
         }
 
@@ -160,6 +121,51 @@ namespace web_api_remit_rocket.Controllers
                 CreatedAt = user.CreatedAt,
                 UpdatedAt = user.UpdatedAt,
             };
+        }
+
+        private async Task<Paginate<GetUserResourceDto>> GetPaginatedData(int currentPage, int perPage)
+        {
+            var query = _context.Users.AsQueryable();
+
+            // Calculate the number of items to skip
+            int skip = (currentPage - 1) * perPage;
+
+            // Get total number of items
+            int totalItems = await query.CountAsync();
+
+            // Calculate total number of pages
+            int totalPages = (int)Math.Ceiling((double)totalItems / perPage);
+
+            // Apply pagination
+            var users = await query
+                .Skip(skip)
+                .Take(perPage)
+                .ToListAsync();
+
+            // Generate next page URL
+            string? nextPageUrl = currentPage < totalPages ? Url.Action(nameof(GetUsers), new { currentPage = currentPage + 1, perPage }) : null;
+
+            // Generate previous page URL
+            string? prevPageUrl = currentPage > 1 ? Url.Action(nameof(GetUsers), new { currentPage = currentPage - 1, perPage }) : null;
+
+            // Create pagination response
+            var paginated = new Paginate<GetUserResourceDto>
+            {
+                currentPage = currentPage,
+                perPage = perPage,
+                total = totalItems,
+                lastPage = totalPages,
+                data = users.Select(ToArrayResource).ToList(),
+                nextPageUrl = nextPageUrl,
+                previousPageUrl = prevPageUrl,
+                firstPageUrl = Url.Action(nameof(GetUsers), new { currentPage = 1, perPage }) ?? null,
+                lastPageUrl = Url.Action(nameof(GetUsers), new { currentPage = totalPages, perPage }) ?? null,
+                path = Url.Action(nameof(GetUsers)) ?? null,
+                from = currentPage <= totalPages ? skip + 1 : null,
+                to = currentPage <= totalPages ? Math.Min(skip + users.Count, totalItems) : null
+            };
+
+            return paginated;
         }
     }
 }
