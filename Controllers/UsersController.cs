@@ -23,7 +23,7 @@ namespace web_api_remit_rocket.Controllers
 
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<Paginate<GetUserResourceDto>>> GetUsers(int currentPage = DefaultPage, int perPage = DefaultPerPage)
+        public async Task<ActionResult<PaginationDto<GetUserResourceDto>>> GetUsers(int currentPage = DefaultPage, int perPage = DefaultPerPage)
         {
             var paginated = await GetPaginatedData(currentPage, perPage);
             return paginated;
@@ -82,7 +82,7 @@ namespace web_api_remit_rocket.Controllers
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetUser", new { id = user.Id }, ToArrayResource(user));
+            return CreatedAtAction(nameof(GetUsers), new { id = user.Id }, ToArrayResource(user));
         }
 
         // DELETE: api/Users/5
@@ -123,7 +123,7 @@ namespace web_api_remit_rocket.Controllers
             };
         }
 
-        private async Task<Paginate<GetUserResourceDto>> GetPaginatedData(int currentPage, int perPage)
+        private async Task<PaginationDto<GetUserResourceDto>> GetPaginatedData(int currentPage, int perPage)
         {
             var query = _context.Users.AsQueryable();
 
@@ -149,7 +149,7 @@ namespace web_api_remit_rocket.Controllers
             string? prevPageUrl = currentPage > 1 ? Url.Action(nameof(GetUsers), new { currentPage = currentPage - 1, perPage }) : null;
 
             // Create pagination response
-            var paginated = new Paginate<GetUserResourceDto>
+            var paginated = new PaginationDto<GetUserResourceDto>
             {
                 currentPage = currentPage,
                 perPage = perPage,
