@@ -11,6 +11,9 @@ namespace web_api_remit_rocket.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
+        private const int DefaultPage = 1;
+        private const int DefaultPerPage = 10;
+        private const string BirthDateFormat = "yyyy-MM-dd";
         private readonly RemitRocketDbContext _context;
 
         public UsersController(RemitRocketDbContext context)
@@ -20,7 +23,7 @@ namespace web_api_remit_rocket.Controllers
 
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<Paginate<GetUserResourceDto>>> GetUsers(int currentPage = 1, int perPage = 10)
+        public async Task<ActionResult<Paginate<GetUserResourceDto>>> GetUsers(int currentPage = DefaultPage, int perPage = DefaultPerPage)
         {
             var query = _context.Users.AsQueryable();
 
@@ -52,7 +55,7 @@ namespace web_api_remit_rocket.Controllers
                 perPage = perPage,
                 total = totalItems,
                 lastPage = totalPages,
-                data = users.Select(toArrayResource).ToList(),
+                data = users.Select(ToArrayResource).ToList(),
                 nextPageUrl = nextPageUrl,
                 previousPageUrl = prevPageUrl,
                 firstPageUrl = Url.Action("GetUsers", new { currentPage = 1, perPage }) ?? string.Empty,
@@ -76,7 +79,7 @@ namespace web_api_remit_rocket.Controllers
                 return NotFound();
             }
 
-            return this.toArrayResource(user);
+            return ToArrayResource(user);
         }
 
         // PUT: api/Users/5
@@ -118,7 +121,7 @@ namespace web_api_remit_rocket.Controllers
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetUser", new { id = user.Id }, this.toArrayResource(user));
+            return CreatedAtAction("GetUser", new { id = user.Id }, ToArrayResource(user));
         }
 
         // DELETE: api/Users/5
@@ -142,7 +145,8 @@ namespace web_api_remit_rocket.Controllers
             return _context.Users.Any(e => e.Id == id);
         }
 
-        private GetUserResourceDto toArrayResource(User user) {
+        private GetUserResourceDto ToArrayResource(User user)
+        {
             return new GetUserResourceDto
             {
                 Id = user.Id,
@@ -151,7 +155,7 @@ namespace web_api_remit_rocket.Controllers
                 FirstName = user.FirstName,
                 MiddleName = user.MiddleName,
                 Gender = user.Gender,
-                BirthDate = user.BirthDate.ToString("yyyy-MM-dd"),
+                BirthDate = user.BirthDate.ToString(format: BirthDateFormat),
                 Status = user.Status,
                 CreatedAt = user.CreatedAt,
                 UpdatedAt = user.UpdatedAt,
